@@ -7,7 +7,8 @@ import {
   Users,
   ReceiptText,
   Wrench,
-  Smartphone
+  Smartphone,
+  BarChart3
 } from "lucide-react";
 
 const navItems = [
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/customers", label: "Customers", icon: Users },
   { href: "/sales", label: "Sales History", icon: ReceiptText },
   { href: "/repairs", label: "Repairs", icon: Wrench },
+  { href: "/reports", label: "Reports", icon: BarChart3 },
 ];
 
 export function Shell({ children }: { children: React.ReactNode }) {
