@@ -8,3 +8,258 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type ProductCategory =
+  (typeof ProductCategory)[keyof typeof ProductCategory];
+
+export const ProductCategory = {
+  phone: "phone",
+  accessory: "accessory",
+  part: "part",
+  service: "service",
+} as const;
+
+export interface Product {
+  id: number;
+  sku: string;
+  name: string;
+  brand: string;
+  category: ProductCategory;
+  stock: number;
+  reorderLevel: number;
+  costPrice: number;
+  salePrice: number;
+  createdAt: string;
+}
+
+export interface ProductInput {
+  /** @minLength 1 */
+  sku: string;
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  brand: string;
+  category: ProductCategory;
+  /** @minimum 0 */
+  stock: number;
+  /** @minimum 0 */
+  reorderLevel: number;
+  /** @minimum 0 */
+  costPrice: number;
+  /** @minimum 0 */
+  salePrice: number;
+}
+
+export interface ProductUpdate {
+  /** @minLength 1 */
+  sku?: string;
+  /** @minLength 1 */
+  name?: string;
+  /** @minLength 1 */
+  brand?: string;
+  category?: ProductCategory;
+  /** @minimum 0 */
+  stock?: number;
+  /** @minimum 0 */
+  reorderLevel?: number;
+  /** @minimum 0 */
+  costPrice?: number;
+  /** @minimum 0 */
+  salePrice?: number;
+}
+
+export interface Customer {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  deviceNotes: string;
+  createdAt: string;
+}
+
+export interface CustomerInput {
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  phone: string;
+  email?: string;
+  deviceNotes?: string;
+}
+
+export interface CustomerUpdate {
+  /** @minLength 1 */
+  name?: string;
+  /** @minLength 1 */
+  phone?: string;
+  email?: string;
+  deviceNotes?: string;
+}
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
+
+export const PaymentMethod = {
+  cash: "cash",
+  card: "card",
+  transfer: "transfer",
+  mixed: "mixed",
+} as const;
+
+export interface SaleItemInput {
+  /** @minimum 1 */
+  productId: number;
+  /** @minimum 1 */
+  quantity: number;
+  /** @minimum 0 */
+  unitPrice: number;
+}
+
+export interface SaleInput {
+  /** @minimum 1 */
+  customerId?: number;
+  paymentMethod: PaymentMethod;
+  /** @minimum 0 */
+  discount: number;
+  /** @minimum 0 */
+  tax: number;
+  notes?: string;
+  /** @minItems 1 */
+  items: SaleItemInput[];
+}
+
+export interface SaleItem {
+  id: number;
+  productId: number;
+  productName: string;
+  sku: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface Sale {
+  id: number;
+  receiptNumber: string;
+  customerId: number | null;
+  customerName: string | null;
+  paymentMethod: PaymentMethod;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  notes: string;
+  createdAt: string;
+  items: SaleItem[];
+}
+
+export type RepairStatus = (typeof RepairStatus)[keyof typeof RepairStatus];
+
+export const RepairStatus = {
+  received: "received",
+  diagnosing: "diagnosing",
+  waiting_parts: "waiting_parts",
+  repairing: "repairing",
+  ready: "ready",
+  completed: "completed",
+  cancelled: "cancelled",
+} as const;
+
+export interface RepairTicket {
+  id: number;
+  ticketNumber: string;
+  customerId: number;
+  customerName: string;
+  device: string;
+  imei: string;
+  issue: string;
+  status: RepairStatus;
+  estimate: number;
+  deposit: number;
+  dueDate: string | null;
+  createdAt: string;
+}
+
+export interface RepairTicketInput {
+  /** @minimum 1 */
+  customerId: number;
+  /** @minLength 1 */
+  device: string;
+  imei?: string;
+  /** @minLength 1 */
+  issue: string;
+  status: RepairStatus;
+  /** @minimum 0 */
+  estimate: number;
+  /** @minimum 0 */
+  deposit: number;
+  dueDate?: string | null;
+}
+
+export interface RepairTicketUpdate {
+  /** @minimum 1 */
+  customerId?: number;
+  /** @minLength 1 */
+  device?: string;
+  imei?: string;
+  /** @minLength 1 */
+  issue?: string;
+  status?: RepairStatus;
+  /** @minimum 0 */
+  estimate?: number;
+  /** @minimum 0 */
+  deposit?: number;
+  dueDate?: string | null;
+}
+
+export type DashboardSummaryTopProductsItem = {
+  productId: number;
+  name: string;
+  quantitySold: number;
+  revenue: number;
+};
+
+export type DashboardSummarySalesByPaymentMethodItem = {
+  paymentMethod: PaymentMethod;
+  total: number;
+  count: number;
+};
+
+export interface DashboardSummary {
+  todayRevenue: number;
+  todaySales: number;
+  totalInventoryValue: number;
+  lowStockCount: number;
+  openRepairs: number;
+  topProducts: DashboardSummaryTopProductsItem[];
+  salesByPaymentMethod: DashboardSummarySalesByPaymentMethodItem[];
+}
+
+export type ActivityItemType =
+  (typeof ActivityItemType)[keyof typeof ActivityItemType];
+
+export const ActivityItemType = {
+  sale: "sale",
+  repair: "repair",
+  inventory: "inventory",
+} as const;
+
+export interface ActivityItem {
+  id: string;
+  type: ActivityItemType;
+  title: string;
+  description: string;
+  amount: number | null;
+  createdAt: string;
+}
+
+export type ListProductsParams = {
+  q?: string;
+  category?: string;
+};
+
+export type ListCustomersParams = {
+  q?: string;
+};
+
+export type ListRepairsParams = {
+  status?: RepairStatus;
+};

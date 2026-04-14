@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
@@ -10,13 +9,22 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Inventory operations
+  - name: customers
+    description: Customer operations
+  - name: sales
+    description: Sales operations
+  - name: repairs
+    description: Repair ticket operations
+  - name: dashboard
+    description: Dashboard operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,7 +32,358 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: category
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update product
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "404":
+          description: Product not found
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete product
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "204":
+          description: Deleted product
+        "404":
+          description: Product not found
+  /products/low-stock:
+    get:
+      operationId: listLowStockProducts
+      tags: [products]
+      summary: List low stock products
+      responses:
+        "200":
+          description: Low stock products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerInput"
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get customer
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Customer not found
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update customer
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        "404":
+          description: Customer not found
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete customer
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "204":
+          description: Deleted customer
+        "404":
+          description: Customer not found
+  /sales:
+    get:
+      operationId: listSales
+      tags: [sales]
+      summary: List sales
+      responses:
+        "200":
+          description: Sales
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sale"
+    post:
+      operationId: createSale
+      tags: [sales]
+      summary: Create sale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaleInput"
+      responses:
+        "201":
+          description: Created sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+  /sales/{id}:
+    get:
+      operationId: getSale
+      tags: [sales]
+      summary: Get sale
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "404":
+          description: Sale not found
+  /repairs:
+    get:
+      operationId: listRepairs
+      tags: [repairs]
+      summary: List repair tickets
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/RepairStatus"
+      responses:
+        "200":
+          description: Repairs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RepairTicket"
+    post:
+      operationId: createRepair
+      tags: [repairs]
+      summary: Create repair ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepairTicketInput"
+      responses:
+        "201":
+          description: Created repair ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepairTicket"
+  /repairs/{id}:
+    get:
+      operationId: getRepair
+      tags: [repairs]
+      summary: Get repair ticket
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "200":
+          description: Repair ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepairTicket"
+        "404":
+          description: Repair ticket not found
+    patch:
+      operationId: updateRepair
+      tags: [repairs]
+      summary: Update repair ticket
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepairTicketUpdate"
+      responses:
+        "200":
+          description: Updated repair ticket
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepairTicket"
+        "404":
+          description: Repair ticket not found
+    delete:
+      operationId: deleteRepair
+      tags: [repairs]
+      summary: Delete repair ticket
+      parameters:
+        - $ref: "#/components/parameters/IdParam"
+      responses:
+        "204":
+          description: Deleted repair ticket
+        "404":
+          description: Repair ticket not found
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /dashboard/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [dashboard]
+      summary: Get recent activity
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityItem"
 components:
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +392,363 @@ components:
           type: string
       required:
         - status
-
+    ProductCategory:
+      type: string
+      enum: [phone, accessory, part, service]
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        sku:
+          type: string
+        name:
+          type: string
+        brand:
+          type: string
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+        stock:
+          type: integer
+        reorderLevel:
+          type: integer
+        costPrice:
+          type: number
+        salePrice:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, sku, name, brand, category, stock, reorderLevel, costPrice, salePrice, createdAt]
+    ProductInput:
+      type: object
+      properties:
+        sku:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+        brand:
+          type: string
+          minLength: 1
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+        stock:
+          type: integer
+          minimum: 0
+        reorderLevel:
+          type: integer
+          minimum: 0
+        costPrice:
+          type: number
+          minimum: 0
+        salePrice:
+          type: number
+          minimum: 0
+      required: [sku, name, brand, category, stock, reorderLevel, costPrice, salePrice]
+    ProductUpdate:
+      type: object
+      properties:
+        sku:
+          type: string
+          minLength: 1
+        name:
+          type: string
+          minLength: 1
+        brand:
+          type: string
+          minLength: 1
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+        stock:
+          type: integer
+          minimum: 0
+        reorderLevel:
+          type: integer
+          minimum: 0
+        costPrice:
+          type: number
+          minimum: 0
+        salePrice:
+          type: number
+          minimum: 0
+    Customer:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        deviceNotes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, name, phone, email, deviceNotes, createdAt]
+    CustomerInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+        deviceNotes:
+          type: string
+      required: [name, phone]
+    CustomerUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+          minLength: 1
+        email:
+          type: string
+        deviceNotes:
+          type: string
+    PaymentMethod:
+      type: string
+      enum: [cash, card, transfer, mixed]
+    SaleItemInput:
+      type: object
+      properties:
+        productId:
+          type: integer
+          minimum: 1
+        quantity:
+          type: integer
+          minimum: 1
+        unitPrice:
+          type: number
+          minimum: 0
+      required: [productId, quantity, unitPrice]
+    SaleInput:
+      type: object
+      properties:
+        customerId:
+          type: integer
+          minimum: 1
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        discount:
+          type: number
+          minimum: 0
+        tax:
+          type: number
+          minimum: 0
+        notes:
+          type: string
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/SaleItemInput"
+      required: [paymentMethod, discount, tax, items]
+    SaleItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        sku:
+          type: string
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        lineTotal:
+          type: number
+      required: [id, productId, productName, sku, quantity, unitPrice, lineTotal]
+    Sale:
+      type: object
+      properties:
+        id:
+          type: integer
+        receiptNumber:
+          type: string
+        customerId:
+          type: integer
+          nullable: true
+        customerName:
+          type: string
+          nullable: true
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        subtotal:
+          type: number
+        discount:
+          type: number
+        tax:
+          type: number
+        total:
+          type: number
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleItem"
+      required: [id, receiptNumber, customerId, customerName, paymentMethod, subtotal, discount, tax, total, notes, createdAt, items]
+    RepairStatus:
+      type: string
+      enum: [received, diagnosing, waiting_parts, repairing, ready, completed, cancelled]
+    RepairTicket:
+      type: object
+      properties:
+        id:
+          type: integer
+        ticketNumber:
+          type: string
+        customerId:
+          type: integer
+        customerName:
+          type: string
+        device:
+          type: string
+        imei:
+          type: string
+        issue:
+          type: string
+        status:
+          $ref: "#/components/schemas/RepairStatus"
+        estimate:
+          type: number
+        deposit:
+          type: number
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, ticketNumber, customerId, customerName, device, imei, issue, status, estimate, deposit, dueDate, createdAt]
+    RepairTicketInput:
+      type: object
+      properties:
+        customerId:
+          type: integer
+          minimum: 1
+        device:
+          type: string
+          minLength: 1
+        imei:
+          type: string
+        issue:
+          type: string
+          minLength: 1
+        status:
+          $ref: "#/components/schemas/RepairStatus"
+        estimate:
+          type: number
+          minimum: 0
+        deposit:
+          type: number
+          minimum: 0
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+      required: [customerId, device, issue, status, estimate, deposit]
+    RepairTicketUpdate:
+      type: object
+      properties:
+        customerId:
+          type: integer
+          minimum: 1
+        device:
+          type: string
+          minLength: 1
+        imei:
+          type: string
+        issue:
+          type: string
+          minLength: 1
+        status:
+          $ref: "#/components/schemas/RepairStatus"
+        estimate:
+          type: number
+          minimum: 0
+        deposit:
+          type: number
+          minimum: 0
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+    DashboardSummary:
+      type: object
+      properties:
+        todayRevenue:
+          type: number
+        todaySales:
+          type: integer
+        totalInventoryValue:
+          type: number
+        lowStockCount:
+          type: integer
+        openRepairs:
+          type: integer
+        topProducts:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: integer
+              name:
+                type: string
+              quantitySold:
+                type: integer
+              revenue:
+                type: number
+            required: [productId, name, quantitySold, revenue]
+        salesByPaymentMethod:
+          type: array
+          items:
+            type: object
+            properties:
+              paymentMethod:
+                $ref: "#/components/schemas/PaymentMethod"
+              total:
+                type: number
+              count:
+                type: integer
+            required: [paymentMethod, total, count]
+      required: [todayRevenue, todaySales, totalInventoryValue, lowStockCount, openRepairs, topProducts, salesByPaymentMethod]
+    ActivityItem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [sale, repair, inventory]
+        title:
+          type: string
+        description:
+          type: string
+        amount:
+          type: number
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, type, title, description, amount, createdAt]

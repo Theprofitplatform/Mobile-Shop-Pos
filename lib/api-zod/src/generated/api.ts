@@ -8,9 +8,511 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary List products
+ */
+export const ListProductsQueryParams = zod.object({
+  q: zod.coerce.string().optional(),
+  category: zod.coerce.string().optional(),
+});
+
+export const ListProductsResponseItem = zod.object({
+  id: zod.number(),
+  sku: zod.string(),
+  name: zod.string(),
+  brand: zod.string(),
+  category: zod.enum(["phone", "accessory", "part", "service"]),
+  stock: zod.number(),
+  reorderLevel: zod.number(),
+  costPrice: zod.number(),
+  salePrice: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListProductsResponse = zod.array(ListProductsResponseItem);
+
+/**
+ * @summary Create product
+ */
+
+export const createProductBodyStockMin = 0;
+
+export const createProductBodyReorderLevelMin = 0;
+
+export const createProductBodyCostPriceMin = 0;
+
+export const createProductBodySalePriceMin = 0;
+
+export const CreateProductBody = zod.object({
+  sku: zod.string().min(1),
+  name: zod.string().min(1),
+  brand: zod.string().min(1),
+  category: zod.enum(["phone", "accessory", "part", "service"]),
+  stock: zod.number().min(createProductBodyStockMin),
+  reorderLevel: zod.number().min(createProductBodyReorderLevelMin),
+  costPrice: zod.number().min(createProductBodyCostPriceMin),
+  salePrice: zod.number().min(createProductBodySalePriceMin),
+});
+
+/**
+ * @summary Get product
+ */
+
+export const GetProductParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const GetProductResponse = zod.object({
+  id: zod.number(),
+  sku: zod.string(),
+  name: zod.string(),
+  brand: zod.string(),
+  category: zod.enum(["phone", "accessory", "part", "service"]),
+  stock: zod.number(),
+  reorderLevel: zod.number(),
+  costPrice: zod.number(),
+  salePrice: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update product
+ */
+
+export const UpdateProductParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const updateProductBodyStockMin = 0;
+
+export const updateProductBodyReorderLevelMin = 0;
+
+export const updateProductBodyCostPriceMin = 0;
+
+export const updateProductBodySalePriceMin = 0;
+
+export const UpdateProductBody = zod.object({
+  sku: zod.string().min(1).optional(),
+  name: zod.string().min(1).optional(),
+  brand: zod.string().min(1).optional(),
+  category: zod.enum(["phone", "accessory", "part", "service"]).optional(),
+  stock: zod.number().min(updateProductBodyStockMin).optional(),
+  reorderLevel: zod.number().min(updateProductBodyReorderLevelMin).optional(),
+  costPrice: zod.number().min(updateProductBodyCostPriceMin).optional(),
+  salePrice: zod.number().min(updateProductBodySalePriceMin).optional(),
+});
+
+export const UpdateProductResponse = zod.object({
+  id: zod.number(),
+  sku: zod.string(),
+  name: zod.string(),
+  brand: zod.string(),
+  category: zod.enum(["phone", "accessory", "part", "service"]),
+  stock: zod.number(),
+  reorderLevel: zod.number(),
+  costPrice: zod.number(),
+  salePrice: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete product
+ */
+
+export const DeleteProductParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+/**
+ * @summary List low stock products
+ */
+export const ListLowStockProductsResponseItem = zod.object({
+  id: zod.number(),
+  sku: zod.string(),
+  name: zod.string(),
+  brand: zod.string(),
+  category: zod.enum(["phone", "accessory", "part", "service"]),
+  stock: zod.number(),
+  reorderLevel: zod.number(),
+  costPrice: zod.number(),
+  salePrice: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListLowStockProductsResponse = zod.array(
+  ListLowStockProductsResponseItem,
+);
+
+/**
+ * @summary List customers
+ */
+export const ListCustomersQueryParams = zod.object({
+  q: zod.coerce.string().optional(),
+});
+
+export const ListCustomersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  email: zod.string(),
+  deviceNotes: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListCustomersResponse = zod.array(ListCustomersResponseItem);
+
+/**
+ * @summary Create customer
+ */
+
+export const CreateCustomerBody = zod.object({
+  name: zod.string().min(1),
+  phone: zod.string().min(1),
+  email: zod.string().optional(),
+  deviceNotes: zod.string().optional(),
+});
+
+/**
+ * @summary Get customer
+ */
+
+export const GetCustomerParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const GetCustomerResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  email: zod.string(),
+  deviceNotes: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update customer
+ */
+
+export const UpdateCustomerParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const UpdateCustomerBody = zod.object({
+  name: zod.string().min(1).optional(),
+  phone: zod.string().min(1).optional(),
+  email: zod.string().optional(),
+  deviceNotes: zod.string().optional(),
+});
+
+export const UpdateCustomerResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  phone: zod.string(),
+  email: zod.string(),
+  deviceNotes: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete customer
+ */
+
+export const DeleteCustomerParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+/**
+ * @summary List sales
+ */
+export const ListSalesResponseItem = zod.object({
+  id: zod.number(),
+  receiptNumber: zod.string(),
+  customerId: zod.number().nullable(),
+  customerName: zod.string().nullable(),
+  paymentMethod: zod.enum(["cash", "card", "transfer", "mixed"]),
+  subtotal: zod.number(),
+  discount: zod.number(),
+  tax: zod.number(),
+  total: zod.number(),
+  notes: zod.string(),
+  createdAt: zod.coerce.date(),
+  items: zod.array(
+    zod.object({
+      id: zod.number(),
+      productId: zod.number(),
+      productName: zod.string(),
+      sku: zod.string(),
+      quantity: zod.number(),
+      unitPrice: zod.number(),
+      lineTotal: zod.number(),
+    }),
+  ),
+});
+export const ListSalesResponse = zod.array(ListSalesResponseItem);
+
+/**
+ * @summary Create sale
+ */
+
+export const createSaleBodyDiscountMin = 0;
+
+export const createSaleBodyTaxMin = 0;
+
+export const createSaleBodyItemsItemUnitPriceMin = 0;
+
+export const CreateSaleBody = zod.object({
+  customerId: zod.number().min(1).optional(),
+  paymentMethod: zod.enum(["cash", "card", "transfer", "mixed"]),
+  discount: zod.number().min(createSaleBodyDiscountMin),
+  tax: zod.number().min(createSaleBodyTaxMin),
+  notes: zod.string().optional(),
+  items: zod
+    .array(
+      zod.object({
+        productId: zod.number().min(1),
+        quantity: zod.number().min(1),
+        unitPrice: zod.number().min(createSaleBodyItemsItemUnitPriceMin),
+      }),
+    )
+    .min(1),
+});
+
+/**
+ * @summary Get sale
+ */
+
+export const GetSaleParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const GetSaleResponse = zod.object({
+  id: zod.number(),
+  receiptNumber: zod.string(),
+  customerId: zod.number().nullable(),
+  customerName: zod.string().nullable(),
+  paymentMethod: zod.enum(["cash", "card", "transfer", "mixed"]),
+  subtotal: zod.number(),
+  discount: zod.number(),
+  tax: zod.number(),
+  total: zod.number(),
+  notes: zod.string(),
+  createdAt: zod.coerce.date(),
+  items: zod.array(
+    zod.object({
+      id: zod.number(),
+      productId: zod.number(),
+      productName: zod.string(),
+      sku: zod.string(),
+      quantity: zod.number(),
+      unitPrice: zod.number(),
+      lineTotal: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary List repair tickets
+ */
+export const ListRepairsQueryParams = zod.object({
+  status: zod
+    .enum([
+      "received",
+      "diagnosing",
+      "waiting_parts",
+      "repairing",
+      "ready",
+      "completed",
+      "cancelled",
+    ])
+    .optional(),
+});
+
+export const ListRepairsResponseItem = zod.object({
+  id: zod.number(),
+  ticketNumber: zod.string(),
+  customerId: zod.number(),
+  customerName: zod.string(),
+  device: zod.string(),
+  imei: zod.string(),
+  issue: zod.string(),
+  status: zod.enum([
+    "received",
+    "diagnosing",
+    "waiting_parts",
+    "repairing",
+    "ready",
+    "completed",
+    "cancelled",
+  ]),
+  estimate: zod.number(),
+  deposit: zod.number(),
+  dueDate: zod.coerce.date().nullable(),
+  createdAt: zod.coerce.date(),
+});
+export const ListRepairsResponse = zod.array(ListRepairsResponseItem);
+
+/**
+ * @summary Create repair ticket
+ */
+
+export const createRepairBodyEstimateMin = 0;
+
+export const createRepairBodyDepositMin = 0;
+
+export const CreateRepairBody = zod.object({
+  customerId: zod.number().min(1),
+  device: zod.string().min(1),
+  imei: zod.string().optional(),
+  issue: zod.string().min(1),
+  status: zod.enum([
+    "received",
+    "diagnosing",
+    "waiting_parts",
+    "repairing",
+    "ready",
+    "completed",
+    "cancelled",
+  ]),
+  estimate: zod.number().min(createRepairBodyEstimateMin),
+  deposit: zod.number().min(createRepairBodyDepositMin),
+  dueDate: zod.coerce.date().nullish(),
+});
+
+/**
+ * @summary Get repair ticket
+ */
+
+export const GetRepairParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const GetRepairResponse = zod.object({
+  id: zod.number(),
+  ticketNumber: zod.string(),
+  customerId: zod.number(),
+  customerName: zod.string(),
+  device: zod.string(),
+  imei: zod.string(),
+  issue: zod.string(),
+  status: zod.enum([
+    "received",
+    "diagnosing",
+    "waiting_parts",
+    "repairing",
+    "ready",
+    "completed",
+    "cancelled",
+  ]),
+  estimate: zod.number(),
+  deposit: zod.number(),
+  dueDate: zod.coerce.date().nullable(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Update repair ticket
+ */
+
+export const UpdateRepairParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+export const updateRepairBodyEstimateMin = 0;
+
+export const updateRepairBodyDepositMin = 0;
+
+export const UpdateRepairBody = zod.object({
+  customerId: zod.number().min(1).optional(),
+  device: zod.string().min(1).optional(),
+  imei: zod.string().optional(),
+  issue: zod.string().min(1).optional(),
+  status: zod
+    .enum([
+      "received",
+      "diagnosing",
+      "waiting_parts",
+      "repairing",
+      "ready",
+      "completed",
+      "cancelled",
+    ])
+    .optional(),
+  estimate: zod.number().min(updateRepairBodyEstimateMin).optional(),
+  deposit: zod.number().min(updateRepairBodyDepositMin).optional(),
+  dueDate: zod.coerce.date().nullish(),
+});
+
+export const UpdateRepairResponse = zod.object({
+  id: zod.number(),
+  ticketNumber: zod.string(),
+  customerId: zod.number(),
+  customerName: zod.string(),
+  device: zod.string(),
+  imei: zod.string(),
+  issue: zod.string(),
+  status: zod.enum([
+    "received",
+    "diagnosing",
+    "waiting_parts",
+    "repairing",
+    "ready",
+    "completed",
+    "cancelled",
+  ]),
+  estimate: zod.number(),
+  deposit: zod.number(),
+  dueDate: zod.coerce.date().nullable(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete repair ticket
+ */
+
+export const DeleteRepairParams = zod.object({
+  id: zod.coerce.number().min(1),
+});
+
+/**
+ * @summary Get dashboard summary
+ */
+export const GetDashboardSummaryResponse = zod.object({
+  todayRevenue: zod.number(),
+  todaySales: zod.number(),
+  totalInventoryValue: zod.number(),
+  lowStockCount: zod.number(),
+  openRepairs: zod.number(),
+  topProducts: zod.array(
+    zod.object({
+      productId: zod.number(),
+      name: zod.string(),
+      quantitySold: zod.number(),
+      revenue: zod.number(),
+    }),
+  ),
+  salesByPaymentMethod: zod.array(
+    zod.object({
+      paymentMethod: zod.enum(["cash", "card", "transfer", "mixed"]),
+      total: zod.number(),
+      count: zod.number(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get recent activity
+ */
+export const GetRecentActivityResponseItem = zod.object({
+  id: zod.string(),
+  type: zod.enum(["sale", "repair", "inventory"]),
+  title: zod.string(),
+  description: zod.string(),
+  amount: zod.number().nullable(),
+  createdAt: zod.coerce.date(),
+});
+export const GetRecentActivityResponse = zod.array(
+  GetRecentActivityResponseItem,
+);
