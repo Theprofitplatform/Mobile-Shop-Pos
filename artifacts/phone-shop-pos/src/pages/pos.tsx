@@ -104,21 +104,21 @@ export default function Pos() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1">
+        <div className="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 auto-rows-min content-start gap-2 p-1">
           {products.map((product) => (
             <Card 
               key={product.id} 
-              className="cursor-pointer hover:border-primary/50 transition-colors flex flex-col"
+              className="cursor-pointer hover:border-primary/50 transition-colors flex flex-col min-h-[116px]"
               onClick={() => addToCart(product)}
             >
-              <CardContent className="p-4 flex-1 flex flex-col justify-between">
+              <CardContent className="p-3 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">{product.sku}</div>
-                  <div className="font-medium text-sm leading-tight line-clamp-2 mb-2">{product.name}</div>
+                  <div className="text-[10px] leading-tight text-muted-foreground mb-1 truncate">{product.sku}</div>
+                  <div className="font-medium text-xs leading-tight line-clamp-2 mb-2">{product.name}</div>
                 </div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="font-bold text-primary">{formatCurrency(product.salePrice)}</div>
-                  <div className="text-xs px-2 py-1 bg-accent rounded-md">{product.stock} in stock</div>
+                <div className="flex items-end justify-between gap-2 mt-2">
+                  <div className="font-bold text-primary text-sm">{formatCurrency(product.salePrice)}</div>
+                  <div className="text-[10px] leading-tight px-1.5 py-1 bg-accent rounded-md text-right">{product.stock} in stock</div>
                 </div>
               </CardContent>
             </Card>
