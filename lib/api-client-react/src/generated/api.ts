@@ -26,6 +26,7 @@ import type {
   ListCustomersParams,
   ListProductsParams,
   ListRepairsParams,
+  ListStockAdjustmentsParams,
   Product,
   ProductInput,
   ProductUpdate,
@@ -34,6 +35,8 @@ import type {
   RepairTicketUpdate,
   Sale,
   SaleInput,
+  StockAdjustment,
+  StockAdjustmentInput,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -632,6 +635,192 @@ export function useListLowStockProducts<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary List inventory stock adjustments
+ */
+export const getListStockAdjustmentsUrl = (
+  params?: ListStockAdjustmentsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/stock-adjustments?${stringifiedParams}`
+    : `/api/stock-adjustments`;
+};
+
+export const listStockAdjustments = async (
+  params?: ListStockAdjustmentsParams,
+  options?: RequestInit,
+): Promise<StockAdjustment[]> => {
+  return customFetch<StockAdjustment[]>(getListStockAdjustmentsUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListStockAdjustmentsQueryKey = (
+  params?: ListStockAdjustmentsParams,
+) => {
+  return [`/api/stock-adjustments`, ...(params ? [params] : [])] as const;
+};
+
+export const getListStockAdjustmentsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listStockAdjustments>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListStockAdjustmentsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStockAdjustments>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getListStockAdjustmentsQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listStockAdjustments>>
+  > = ({ signal }) =>
+    listStockAdjustments(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listStockAdjustments>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListStockAdjustmentsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listStockAdjustments>>
+>;
+export type ListStockAdjustmentsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List inventory stock adjustments
+ */
+
+export function useListStockAdjustments<
+  TData = Awaited<ReturnType<typeof listStockAdjustments>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListStockAdjustmentsParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStockAdjustments>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListStockAdjustmentsQueryOptions(params, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create inventory stock adjustment
+ */
+export const getCreateStockAdjustmentUrl = () => {
+  return `/api/stock-adjustments`;
+};
+
+export const createStockAdjustment = async (
+  stockAdjustmentInput: StockAdjustmentInput,
+  options?: RequestInit,
+): Promise<StockAdjustment> => {
+  return customFetch<StockAdjustment>(getCreateStockAdjustmentUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(stockAdjustmentInput),
+  });
+};
+
+export const getCreateStockAdjustmentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStockAdjustment>>,
+    TError,
+    { data: BodyType<StockAdjustmentInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createStockAdjustment>>,
+  TError,
+  { data: BodyType<StockAdjustmentInput> },
+  TContext
+> => {
+  const mutationKey = ["createStockAdjustment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createStockAdjustment>>,
+    { data: BodyType<StockAdjustmentInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createStockAdjustment(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateStockAdjustmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createStockAdjustment>>
+>;
+export type CreateStockAdjustmentMutationBody = BodyType<StockAdjustmentInput>;
+export type CreateStockAdjustmentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create inventory stock adjustment
+ */
+export const useCreateStockAdjustment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createStockAdjustment>>,
+    TError,
+    { data: BodyType<StockAdjustmentInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createStockAdjustment>>,
+  TError,
+  { data: BodyType<StockAdjustmentInput> },
+  TContext
+> => {
+  return useMutation(getCreateStockAdjustmentMutationOptions(options));
+};
 
 /**
  * @summary List customers

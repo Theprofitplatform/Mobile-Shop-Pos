@@ -148,6 +148,41 @@ export const ListLowStockProductsResponse = zod.array(
 );
 
 /**
+ * @summary List inventory stock adjustments
+ */
+
+export const ListStockAdjustmentsQueryParams = zod.object({
+  productId: zod.coerce.number().min(1).optional(),
+});
+
+export const ListStockAdjustmentsResponseItem = zod.object({
+  id: zod.number(),
+  productId: zod.number(),
+  productName: zod.string(),
+  sku: zod.string(),
+  type: zod.enum(["restock", "damage", "return", "correction"]),
+  quantityChange: zod.number(),
+  previousStock: zod.number(),
+  newStock: zod.number(),
+  note: zod.string(),
+  createdAt: zod.coerce.date(),
+});
+export const ListStockAdjustmentsResponse = zod.array(
+  ListStockAdjustmentsResponseItem,
+);
+
+/**
+ * @summary Create inventory stock adjustment
+ */
+
+export const CreateStockAdjustmentBody = zod.object({
+  productId: zod.number().min(1),
+  type: zod.enum(["restock", "damage", "return", "correction"]),
+  quantityChange: zod.number(),
+  note: zod.string().optional(),
+});
+
+/**
  * @summary List customers
  */
 export const ListCustomersQueryParams = zod.object({

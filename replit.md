@@ -19,9 +19,10 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ## Phone Shop POS
 
 - **Artifact**: `artifacts/phone-shop-pos` served at `/`
-- **Purpose**: Manage phone/accessory/parts inventory, customers, POS checkout, sales receipts, repair tickets, low-stock alerts, and dashboard summaries.
+- **Purpose**: Manage phone/accessory/parts inventory, customers, POS checkout, sales receipts, repair tickets, low-stock alerts, inventory adjustments, business reports, and dashboard summaries.
 - **Backend**: Shared Express API server in `artifacts/api-server`
-- **Data model**: Products, customers, sales, sale items, and repair tickets in PostgreSQL via Drizzle schema `lib/db/src/schema/pos.ts`
+- **Data model**: Products, customers, sales, sale items, repair tickets, and stock adjustments in PostgreSQL via Drizzle schema `lib/db/src/schema/pos.ts`
+- **Inventory control**: `/stock-control` records restocks, returns, damaged/lost items, and manual corrections with previous/new stock audit trail. The API exposes `/api/stock-adjustments` and dashboard recent activity includes stock adjustment events.
 
 ## Key Commands
 

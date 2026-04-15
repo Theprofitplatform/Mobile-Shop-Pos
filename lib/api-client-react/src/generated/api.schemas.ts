@@ -68,6 +68,37 @@ export interface ProductUpdate {
   salePrice?: number;
 }
 
+export type StockAdjustmentType =
+  (typeof StockAdjustmentType)[keyof typeof StockAdjustmentType];
+
+export const StockAdjustmentType = {
+  restock: "restock",
+  damage: "damage",
+  return: "return",
+  correction: "correction",
+} as const;
+
+export interface StockAdjustment {
+  id: number;
+  productId: number;
+  productName: string;
+  sku: string;
+  type: StockAdjustmentType;
+  quantityChange: number;
+  previousStock: number;
+  newStock: number;
+  note: string;
+  createdAt: string;
+}
+
+export interface StockAdjustmentInput {
+  /** @minimum 1 */
+  productId: number;
+  type: StockAdjustmentType;
+  quantityChange: number;
+  note?: string;
+}
+
 export interface Customer {
   id: number;
   name: string;
@@ -254,6 +285,13 @@ export interface ActivityItem {
 export type ListProductsParams = {
   q?: string;
   category?: string;
+};
+
+export type ListStockAdjustmentsParams = {
+  /**
+   * @minimum 1
+   */
+  productId?: number;
 };
 
 export type ListCustomersParams = {

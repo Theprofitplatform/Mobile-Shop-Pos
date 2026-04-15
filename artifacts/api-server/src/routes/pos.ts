@@ -7,8 +7,10 @@ import {
   repairTicketsTable,
   saleItemsTable,
   salesTable,
+  stockAdjustmentsTable,
 } from "@workspace/db";
 import {
+  CreateStockAdjustmentBody,
   CreateCustomerBody,
   CreateProductBody,
   CreateRepairBody,
@@ -34,6 +36,9 @@ import {
   ListRepairsQueryParams,
   ListRepairsResponse,
   ListSalesResponse,
+  ListStockAdjustmentsQueryParams,
+  ListStockAdjustmentsResponse,
+  ListStockAdjustmentsResponseItem,
   UpdateCustomerBody,
   UpdateCustomerParams,
   UpdateCustomerResponse,
@@ -170,6 +175,32 @@ async function listRepairRecords(status?: string) {
   return base.orderBy(desc(repairTicketsTable.createdAt));
 }
 
+async function listStockAdjustmentRecords(productId?: number) {
+  const base = db
+    .select({
+      id: stockAdjustmentsTable.id,
+      productId: stockAdjustmentsTable.productId,
+      productName: productsTable.name,
+      sku: productsTable.sku,
+      type: stockAdjustmentsTable.type,
+      quantityChange: stockAdjustmentsTable.quantityChange,
+      previousStock: stockAdjustmentsTable.previousStock,
+      newStock: stockAdjustmentsTable.newStock,
+      note: stockAdjustmentsTable.note,
+      createdAt: stockAdjustmentsTable.createdAt,
+    })
+    .from(stockAdjustmentsTable)
+    .innerJoin(productsTable, eq(stockAdjustmentsTable.productId, productsTable.id));
+
+  if (productId) {
+    return base
+      .where(eq(stockAdjustmentsTable.productId, productId))
+      .orderBy(desc(stockAdjustmentsTable.createdAt));
+  }
+
+  return base.orderBy(desc(stockAdjustmentsTable.createdAt));
+}
+
 router.get("/products", async (req, res): Promise<void> => {
   const parsed = ListProductsQueryParams.safeParse(req.query);
   if (!parsed.success) {
@@ -295,6 +326,76 @@ router.delete("/products/:id", async (req, res): Promise<void> => {
   }
 
   res.sendStatus(204);
+});
+
+router.get("/stock-adjustments", async (req, res): Promise<void> => {
+  const parsed = ListStockAdjustmentsQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const adjustments = await listStockAdjustmentRecords(parsed.data.productId);
+  res.json(ListStockAdjustmentsResponse.parse(adjustments));
+});
+
+router.post("/stock-adjustments", async (req, res): Promise<void> => {
+  const parsed = CreateStockAdjustmentBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  if (parsed.data.quantityChange === 0) {
+    res.status(400).json({ error: "Quantity change cannot be zero" });
+    return;
+  }
+
+  try {
+    const adjustmentId = await db.transaction(async (tx) => {
+      const [product] = await tx
+        .select()
+        .from(productsTable)
+        .where(eq(productsTable.id, parsed.data.productId));
+
+      if (!product) {
+        throw new Error("Product not found");
+      }
+
+      const previousStock = product.stock;
+      const newStock = previousStock + parsed.data.quantityChange;
+
+      if (newStock < 0) {
+        throw new Error(`${product.name} cannot be adjusted below zero stock`);
+      }
+
+      const [adjustment] = await tx
+        .insert(stockAdjustmentsTable)
+        .values({
+          productId: parsed.data.productId,
+          type: parsed.data.type,
+          quantityChange: parsed.data.quantityChange,
+          previousStock,
+          newStock,
+          note: parsed.data.note ?? "",
+        })
+        .returning();
+
+      await tx
+        .update(productsTable)
+        .set({ stock: newStock })
+        .where(eq(productsTable.id, parsed.data.productId));
+
+      return adjustment.id;
+    });
+
+    const created = (await listStockAdjustmentRecords()).find((item) => item.id === adjustmentId);
+
+    res.status(201).json(ListStockAdjustmentsResponseItem.parse(created));
+  } catch (error) {
+    req.log.warn({ err: error }, "Unable to create stock adjustment");
+    res.status(400).json({ error: error instanceof Error ? error.message : "Unable to create stock adjustment" });
+  }
 });
 
 router.get("/customers", async (req, res): Promise<void> => {
@@ -655,7 +756,7 @@ router.get("/dashboard/summary", async (_req, res): Promise<void> => {
 });
 
 router.get("/dashboard/recent-activity", async (_req, res): Promise<void> => {
-  const [sales, repairs, lowStock] = await Promise.all([
+  const [sales, repairs, lowStock, adjustments] = await Promise.all([
     listSaleRecords(),
     listRepairRecords(),
     db
@@ -663,6 +764,7 @@ router.get("/dashboard/recent-activity", async (_req, res): Promise<void> => {
       .from(productsTable)
       .where(lte(productsTable.stock, productsTable.reorderLevel))
       .orderBy(asc(productsTable.stock)),
+    listStockAdjustmentRecords(),
   ]);
 
   const activity = [
@@ -689,6 +791,14 @@ router.get("/dashboard/recent-activity", async (_req, res): Promise<void> => {
       description: `${product.stock} left, reorder level ${product.reorderLevel}`,
       amount: null,
       createdAt: product.createdAt,
+    })),
+    ...adjustments.slice(0, 6).map((adjustment) => ({
+      id: `stock-adjustment-${adjustment.id}`,
+      type: "inventory" as const,
+      title: `${adjustment.productName} stock ${adjustment.quantityChange > 0 ? "increased" : "reduced"}`,
+      description: `${adjustment.previousStock} → ${adjustment.newStock} (${adjustment.type})`,
+      amount: null,
+      createdAt: adjustment.createdAt,
     })),
   ]
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())

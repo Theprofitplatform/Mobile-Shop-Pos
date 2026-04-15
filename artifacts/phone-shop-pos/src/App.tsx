@@ -10,6 +10,7 @@ import Customers from "@/pages/customers";
 import Sales from "@/pages/sales";
 import Repairs from "@/pages/repairs";
 import Reports from "@/pages/reports";
+import StockControl from "@/pages/stock-control";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/pos" component={Pos} />
         <Route path="/inventory" component={Inventory} />
+        <Route path="/stock-control" component={StockControl} />
         <Route path="/customers" component={Customers} />
         <Route path="/sales" component={Sales} />
         <Route path="/repairs" component={Repairs} />

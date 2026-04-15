@@ -19,6 +19,8 @@ tags:
     description: Repair ticket operations
   - name: dashboard
     description: Dashboard operations
+  - name: stock-adjustments
+    description: Inventory stock adjustment operations
 paths:
   /healthz:
     get:
@@ -134,6 +136,43 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Product"
+  /stock-adjustments:
+    get:
+      operationId: listStockAdjustments
+      tags: [stock-adjustments]
+      summary: List inventory stock adjustments
+      parameters:
+        - in: query
+          name: productId
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Stock adjustments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockAdjustment"
+    post:
+      operationId: createStockAdjustment
+      tags: [stock-adjustments]
+      summary: Create inventory stock adjustment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StockAdjustmentInput"
+      responses:
+        "201":
+          description: Created stock adjustment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockAdjustment"
   /customers:
     get:
       operationId: listCustomers
@@ -473,6 +512,47 @@ components:
         salePrice:
           type: number
           minimum: 0
+    StockAdjustmentType:
+      type: string
+      enum: [restock, damage, return, correction]
+    StockAdjustment:
+      type: object
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        sku:
+          type: string
+        type:
+          $ref: "#/components/schemas/StockAdjustmentType"
+        quantityChange:
+          type: integer
+        previousStock:
+          type: integer
+        newStock:
+          type: integer
+        note:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, productId, productName, sku, type, quantityChange, previousStock, newStock, note, createdAt]
+    StockAdjustmentInput:
+      type: object
+      properties:
+        productId:
+          type: integer
+          minimum: 1
+        type:
+          $ref: "#/components/schemas/StockAdjustmentType"
+        quantityChange:
+          type: integer
+        note:
+          type: string
+      required: [productId, type, quantityChange]
     Customer:
       type: object
       properties:

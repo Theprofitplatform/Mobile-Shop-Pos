@@ -8,13 +8,15 @@ import {
   ReceiptText,
   Wrench,
   Smartphone,
-  BarChart3
+  BarChart3,
+  ClipboardList
 } from "lucide-react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/pos", label: "Point of Sale", icon: ShoppingCart },
   { href: "/inventory", label: "Inventory", icon: Package },
+  { href: "/stock-control", label: "Stock Control", icon: ClipboardList },
   { href: "/customers", label: "Customers", icon: Users },
   { href: "/sales", label: "Sales History", icon: ReceiptText },
   { href: "/repairs", label: "Repairs", icon: Wrench },

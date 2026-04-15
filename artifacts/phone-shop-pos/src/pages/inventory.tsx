@@ -8,6 +8,7 @@ import { Search, Plus, AlertCircle, Edit, Trash } from "lucide-react";
 import { ProductDialog } from "@/components/dialogs/product-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
 
 export default function Inventory() {
   const [search, setSearch] = useState("");
@@ -47,9 +48,14 @@ export default function Inventory() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
-        <Button className="gap-2" onClick={handleAdd}>
-          <Plus className="w-4 h-4" /> Add Product
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/stock-control">
+            <Button variant="outline">Stock Control</Button>
+          </Link>
+          <Button className="gap-2" onClick={handleAdd}>
+            <Plus className="w-4 h-4" /> Add Product
+          </Button>
+        </div>
       </div>
 
       <Card>

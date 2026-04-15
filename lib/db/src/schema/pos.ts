@@ -35,6 +35,13 @@ export const repairStatusEnum = pgEnum("repair_status", [
   "cancelled",
 ]);
 
+export const stockAdjustmentTypeEnum = pgEnum("stock_adjustment_type", [
+  "restock",
+  "damage",
+  "return",
+  "correction",
+]);
+
 export const productsTable = pgTable("products", {
   id: serial("id").primaryKey(),
   sku: text("sku").notNull().unique(),
@@ -45,6 +52,19 @@ export const productsTable = pgTable("products", {
   reorderLevel: integer("reorder_level").notNull().default(0),
   costPrice: doublePrecision("cost_price").notNull().default(0),
   salePrice: doublePrecision("sale_price").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const stockAdjustmentsTable = pgTable("stock_adjustments", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").notNull().references(() => productsTable.id, {
+    onDelete: "restrict",
+  }),
+  type: stockAdjustmentTypeEnum("type").notNull(),
+  quantityChange: integer("quantity_change").notNull(),
+  previousStock: integer("previous_stock").notNull(),
+  newStock: integer("new_stock").notNull(),
+  note: text("note").notNull().default(""),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -120,14 +140,22 @@ export const insertRepairTicketSchema = createInsertSchema(repairTicketsTable).o
   id: true,
   createdAt: true,
 });
+export const insertStockAdjustmentSchema = createInsertSchema(stockAdjustmentsTable).omit({
+  id: true,
+  previousStock: true,
+  newStock: true,
+  createdAt: true,
+});
 
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
 export type InsertSale = z.infer<typeof insertSaleSchema>;
 export type InsertSaleItem = z.infer<typeof insertSaleItemSchema>;
 export type InsertRepairTicket = z.infer<typeof insertRepairTicketSchema>;
+export type InsertStockAdjustment = z.infer<typeof insertStockAdjustmentSchema>;
 export type Product = typeof productsTable.$inferSelect;
 export type Customer = typeof customersTable.$inferSelect;
 export type Sale = typeof salesTable.$inferSelect;
 export type SaleItem = typeof saleItemsTable.$inferSelect;
 export type RepairTicket = typeof repairTicketsTable.$inferSelect;
+export type StockAdjustment = typeof stockAdjustmentsTable.$inferSelect;
