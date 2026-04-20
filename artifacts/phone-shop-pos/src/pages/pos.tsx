@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useListProducts, useListCustomers, useCreateSale, getListSalesQueryKey, getGetDashboardSummaryQueryKey, getListProductsQueryKey, getListLowStockProductsQueryKey } from "@workspace/api-client-react";
+import { useListProducts, useListCustomers, useCreateSale, getListSalesQueryKey, getGetDashboardSummaryQueryKey, getListProductsQueryKey, getListLowStockProductsQueryKey } from "@/lib/supabase-hooks";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

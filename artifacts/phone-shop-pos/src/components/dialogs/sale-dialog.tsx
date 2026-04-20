@@ -1,5 +1,5 @@
 import React from "react";
-import { useGetSale } from "@workspace/api-client-react";
+import { useGetSale } from "@/lib/supabase-hooks";
 import {
   Dialog,
   DialogContent,

@@ -9,7 +9,7 @@ import {
   getListRepairsQueryKey,
   useListCustomers,
   RepairTicket,
-} from "@workspace/api-client-react";
+} from "@/lib/supabase-hooks";
 import {
   Dialog,
   DialogContent,

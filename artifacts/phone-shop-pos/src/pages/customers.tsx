@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useListCustomers, useDeleteCustomer, getListCustomersQueryKey, Customer } from "@workspace/api-client-react";
+import { useListCustomers, useDeleteCustomer, getListCustomersQueryKey, Customer } from "@/lib/supabase-hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

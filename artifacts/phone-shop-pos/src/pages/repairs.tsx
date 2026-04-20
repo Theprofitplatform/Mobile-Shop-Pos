@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useListRepairs, useDeleteRepair, getListRepairsQueryKey, RepairTicket } from "@workspace/api-client-react";
+import { useListRepairs, useDeleteRepair, getListRepairsQueryKey, RepairTicket } from "@/lib/supabase-hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/format";

@@ -1,5 +1,5 @@
 import React from "react";
-import { useGetDashboardSummary, useGetRecentActivity } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useGetRecentActivity } from "@/lib/supabase-hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/format";

@@ -4,7 +4,7 @@ import {
   useListProducts,
   useListRepairs,
   useListSales,
-} from "@workspace/api-client-react";
+} from "@/lib/supabase-hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format";

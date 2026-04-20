@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useListSales } from "@workspace/api-client-react";
+import { useListSales } from "@/lib/supabase-hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { Receipt, Search, Filter, Eye } from "lucide-react";
