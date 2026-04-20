@@ -17,6 +17,8 @@ export type RepairStatus = "received" | "diagnosing" | "waiting_parts" | "repair
 export type StockAdjustmentType = "restock" | "damage" | "return" | "correction";
 export type ActivityItemType = "sale" | "repair" | "inventory";
 
+export type QuoteStatus = "draft" | "sent" | "accepted" | "declined" | "expired";
+
 export interface Product {
   id: number;
   sku: string;
@@ -27,6 +29,8 @@ export interface Product {
   reorderLevel: number;
   costPrice: number;
   salePrice: number;
+  notes: string;
+  imageUrl: string;
   createdAt: string;
 }
 
@@ -39,6 +43,8 @@ export interface ProductInput {
   reorderLevel: number;
   costPrice: number;
   salePrice: number;
+  notes?: string;
+  imageUrl?: string;
 }
 
 export interface ProductUpdate {
@@ -50,6 +56,8 @@ export interface ProductUpdate {
   reorderLevel?: number;
   costPrice?: number;
   salePrice?: number;
+  notes?: string;
+  imageUrl?: string;
 }
 
 export interface Customer {
@@ -79,6 +87,7 @@ export interface SaleItemInput {
   productId: number;
   quantity: number;
   unitPrice: number;
+  serialNumber?: string;
 }
 
 export interface SaleInput {
@@ -98,6 +107,42 @@ export interface SaleItem {
   quantity: number;
   unitPrice: number;
   lineTotal: number;
+  serialNumber: string;
+}
+
+export interface Quote {
+  id: number;
+  quoteNumber: string;
+  customerId: number | null;
+  customerName: string | null;
+  status: QuoteStatus;
+  subtotal: number;
+  discount: number;
+  tax: number;
+  total: number;
+  notes: string;
+  validUntil: string | null;
+  createdAt: string;
+  items: QuoteItem[];
+}
+
+export interface QuoteItem {
+  id: number;
+  productId: number;
+  productName: string;
+  sku: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface QuoteInput {
+  customerId?: number;
+  discount: number;
+  tax: number;
+  notes?: string;
+  validUntil?: string;
+  items: { productId: number; quantity: number; unitPrice: number }[];
 }
 
 export interface Sale {
@@ -211,6 +256,8 @@ function mapProduct(row: Record<string, unknown>): Product {
     reorderLevel: row.reorder_level as number,
     costPrice: row.cost_price as number,
     salePrice: row.sale_price as number,
+    notes: (row.notes as string) ?? "",
+    imageUrl: (row.image_url as string) ?? "",
     createdAt: row.created_at as string,
   };
 }
@@ -269,6 +316,7 @@ function mapSaleItem(row: Record<string, unknown>): SaleItem {
     quantity: row.quantity as number,
     unitPrice: row.unit_price as number,
     lineTotal: row.line_total as number,
+    serialNumber: (row.serial_number as string) ?? "",
   };
 }
 
@@ -336,6 +384,8 @@ export function useCreateProduct(options?: { mutation?: UseMutationOptions<Produ
           reorder_level: data.reorderLevel,
           cost_price: data.costPrice,
           sale_price: data.salePrice,
+          notes: data.notes ?? "",
+          image_url: data.imageUrl ?? "",
         })
         .select()
         .single();
@@ -359,6 +409,8 @@ export function useUpdateProduct(options?: { mutation?: UseMutationOptions<Produ
       if (data.reorderLevel !== undefined) update.reorder_level = data.reorderLevel;
       if (data.costPrice !== undefined) update.cost_price = data.costPrice;
       if (data.salePrice !== undefined) update.sale_price = data.salePrice;
+      if (data.notes !== undefined) update.notes = data.notes;
+      if (data.imageUrl !== undefined) update.image_url = data.imageUrl;
 
       const { data: row, error } = await supabase
         .from("products")
@@ -841,4 +893,200 @@ export function useGetRecentActivity(_options?: Record<string, unknown>) {
     },
       });
   return { ...query, queryKey };
+}
+
+// ---------------------------------------------------------------------------
+// Customer Sales History
+// ---------------------------------------------------------------------------
+
+export function useCustomerSalesHistory(customerId: number) {
+  const queryKey = [`/supabase/customers/${customerId}/sales`] as const;
+  const query = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data: sales, error } = await supabase
+        .from("sales")
+        .select("*, customers(name)")
+        .eq("customer_id", customerId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return Promise.all((sales ?? []).map(async (s) => {
+        const { data: items } = await supabase
+          .from("sale_items")
+          .select("*, products(name, sku)")
+          .eq("sale_id", s.id);
+        return {
+          id: s.id,
+          receiptNumber: s.receipt_number,
+          paymentMethod: s.payment_method,
+          total: s.total,
+          createdAt: s.created_at,
+          items: (items ?? []).map(mapSaleItem),
+        };
+      }));
+    },
+    enabled: !!customerId,
+  });
+  return { ...query, queryKey };
+}
+
+// ---------------------------------------------------------------------------
+// Bulk Product Import
+// ---------------------------------------------------------------------------
+
+export function useBulkImportProducts() {
+  return useMutation({
+    mutationKey: ["bulkImportProducts"],
+    mutationFn: async (products: ProductInput[]) => {
+      const rows = products.map(p => ({
+        sku: p.sku,
+        name: p.name,
+        brand: p.brand,
+        category: p.category,
+        stock: p.stock,
+        reorder_level: p.reorderLevel,
+        cost_price: p.costPrice,
+        sale_price: p.salePrice,
+        notes: p.notes ?? "",
+        image_url: p.imageUrl ?? "",
+      }));
+      const { data, error } = await supabase.from("products").upsert(rows, { onConflict: "sku" }).select();
+      if (error) throw error;
+      return (data ?? []).map(mapProduct);
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Quotes
+// ---------------------------------------------------------------------------
+
+export const getListQuotesQueryKey = () => [`/supabase/quotes`] as const;
+
+async function fetchQuoteRecord(quoteId: number): Promise<Quote> {
+  const { data: row, error } = await supabase
+    .from("quotes")
+    .select("*, customers(name)")
+    .eq("id", quoteId)
+    .single();
+  if (error) throw error;
+
+  const { data: items, error: itemsError } = await supabase
+    .from("quote_items")
+    .select("*, products(name, sku)")
+    .eq("quote_id", quoteId)
+    .order("id");
+  if (itemsError) throw itemsError;
+
+  return {
+    id: row.id,
+    quoteNumber: row.quote_number,
+    customerId: row.customer_id,
+    customerName: row.customers?.name ?? null,
+    status: row.status,
+    subtotal: row.subtotal,
+    discount: row.discount,
+    tax: row.tax,
+    total: row.total,
+    notes: row.notes ?? "",
+    validUntil: row.valid_until,
+    createdAt: row.created_at,
+    items: (items ?? []).map((i: Record<string, unknown>) => {
+      const product = (i as Record<string, unknown>).products as Record<string, unknown> | undefined;
+      return {
+        id: i.id as number,
+        productId: i.product_id as number,
+        productName: product?.name as string ?? "",
+        sku: product?.sku as string ?? "",
+        quantity: i.quantity as number,
+        unitPrice: i.unit_price as number,
+        lineTotal: i.line_total as number,
+      };
+    }),
+  };
+}
+
+export function useListQuotes() {
+  const queryKey = getListQuotesQueryKey();
+  const query = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("quotes")
+        .select("id")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return Promise.all((data ?? []).map((q: { id: number }) => fetchQuoteRecord(q.id)));
+    },
+  });
+  return { ...query, queryKey };
+}
+
+export function useCreateQuote() {
+  return useMutation({
+    mutationKey: ["createQuote"],
+    mutationFn: async ({ data }: { data: QuoteInput }) => {
+      const subtotal = data.items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
+      const total = Math.max(0, subtotal - data.discount + data.tax);
+      const quoteNumber = `Q-${Date.now().toString(36).toUpperCase()}`;
+
+      const { data: row, error } = await supabase
+        .from("quotes")
+        .insert({
+          quote_number: quoteNumber,
+          customer_id: data.customerId ?? null,
+          subtotal,
+          discount: data.discount,
+          tax: data.tax,
+          total,
+          notes: data.notes ?? "",
+          valid_until: data.validUntil ?? null,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      for (const item of data.items) {
+        const lineTotal = item.quantity * item.unitPrice;
+        await supabase.from("quote_items").insert({
+          quote_id: row.id,
+          product_id: item.productId,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          line_total: lineTotal,
+        });
+      }
+
+      return fetchQuoteRecord(row.id);
+    },
+  });
+}
+
+export function useConvertQuoteToSale() {
+  return useMutation({
+    mutationKey: ["convertQuoteToSale"],
+    mutationFn: async ({ quoteId, paymentMethod }: { quoteId: number; paymentMethod: PaymentMethod }) => {
+      const quote = await fetchQuoteRecord(quoteId);
+      const items = quote.items.map(i => ({
+        productId: i.productId,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+      }));
+
+      const { data: result, error } = await supabase.rpc("create_sale", {
+        p_customer_id: quote.customerId ?? null,
+        p_payment_method: paymentMethod,
+        p_discount: quote.discount,
+        p_tax: quote.tax,
+        p_notes: `Converted from ${quote.quoteNumber}`,
+        p_items: JSON.stringify(items),
+      });
+      if (error) throw error;
+
+      // Mark quote as accepted
+      await supabase.from("quotes").update({ status: "accepted" }).eq("id", quoteId);
+
+      return (result as Record<string, unknown>).id as number;
+    },
+  });
 }

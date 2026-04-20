@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useListCustomers, useDeleteCustomer, getListCustomersQueryKey, Customer } from "@/lib/supabase-hooks";
+import { useListCustomers, useDeleteCustomer, useCustomerSalesHistory, getListCustomersQueryKey, Customer } from "@/lib/supabase-hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { formatDate } from "@/lib/format";
-import { Search, Plus, User, Phone, Mail, FileText, Edit, Trash } from "lucide-react";
+import { formatDate, formatCurrency } from "@/lib/format";
+import { Search, Plus, User, Phone, Mail, FileText, Edit, Trash, ShoppingBag, X, Receipt } from "lucide-react";
 import { CustomerDialog } from "@/components/dialogs/customer-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ export default function Customers() {
   const { data: customers = [], isLoading } = useListCustomers({ q: search });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [historyCustomer, setHistoryCustomer] = useState<Customer | null>(null);
   const deleteCustomer = useDeleteCustomer();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -73,7 +74,7 @@ export default function Customers() {
             {isLoading ? (
               <div className="col-span-full text-center py-8">Loading...</div>
             ) : customers.map((customer) => (
-              <Card key={customer.id} className="hover:border-primary/30 transition-colors">
+              <Card key={customer.id} className="hover:border-primary/30 transition-colors cursor-pointer" onClick={() => setHistoryCustomer(customer)}>
                 <CardContent className="p-5 space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
@@ -123,6 +124,66 @@ export default function Customers() {
         </CardContent>
       </Card>
       <CustomerDialog open={dialogOpen} onOpenChange={setDialogOpen} customer={selectedCustomer} />
+
+      {/* Sales History Panel */}
+      {historyCustomer && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex justify-end" onClick={() => setHistoryCustomer(null)}>
+          <div className="w-full max-w-lg bg-background h-full overflow-y-auto shadow-xl animate-in slide-in-from-right duration-300" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-background border-b px-6 py-4 flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-lg font-bold">{historyCustomer.name}</h2>
+                <p className="text-sm text-muted-foreground">{historyCustomer.phone}</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setHistoryCustomer(null)}><X className="w-5 h-5" /></Button>
+            </div>
+            <div className="p-6">
+              <CustomerSalesHistory customerId={historyCustomer.id} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CustomerSalesHistory({ customerId }: { customerId: number }) {
+  const { data: sales = [], isLoading } = useCustomerSalesHistory(customerId);
+
+  if (isLoading) return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
+  if (sales.length === 0) return (
+    <div className="text-center py-12 text-muted-foreground space-y-2">
+      <ShoppingBag className="w-12 h-12 mx-auto opacity-20" />
+      <p>No purchase history yet</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-sm font-semibold flex items-center gap-2"><Receipt className="w-4 h-4" /> Purchase History ({sales.length})</h3>
+      {sales.map((sale) => (
+        <Card key={sale.id}>
+          <CardContent className="p-4 space-y-2">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="font-mono text-xs text-primary font-semibold">{sale.receiptNumber}</div>
+                <div className="text-xs text-muted-foreground">{formatDate(sale.createdAt)}</div>
+              </div>
+              <div className="text-right">
+                <div className="font-bold">{formatCurrency(sale.total)}</div>
+                <div className="text-xs text-muted-foreground capitalize">{sale.paymentMethod}</div>
+              </div>
+            </div>
+            <div className="border-t pt-2 space-y-1">
+              {sale.items.map((item) => (
+                <div key={item.id} className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">{item.quantity}x {item.productName}</span>
+                  <span>{formatCurrency(item.lineTotal)}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

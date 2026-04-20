@@ -38,6 +38,8 @@ const productSchema = z.object({
   reorderLevel: z.coerce.number().min(0),
   costPrice: z.coerce.number().min(0),
   salePrice: z.coerce.number().min(0),
+  notes: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -65,6 +67,8 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
       reorderLevel: 0,
       costPrice: 0,
       salePrice: 0,
+      notes: "",
+      imageUrl: "",
     },
   });
 
@@ -79,6 +83,8 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         reorderLevel: product.reorderLevel,
         costPrice: product.costPrice,
         salePrice: product.salePrice,
+        notes: product.notes || "",
+        imageUrl: product.imageUrl || "",
       });
     } else {
       form.reset({
@@ -239,6 +245,30 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL (Optional)</FormLabel>
+                  <FormControl><Input placeholder="https://..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormControl><Input placeholder="Internal notes about this product" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end pt-4">
               <Button type="submit" disabled={createProduct.isPending || updateProduct.isPending}>
